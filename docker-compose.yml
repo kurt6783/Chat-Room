@@ -1,0 +1,62 @@
+version: '3'
+networks: 
+  chat:
+services: 
+  nginx-laravel:
+    image: nginx:stable-alpine
+    container_name: chat-nginx-laravel
+    ports:
+      - "8082:80"
+    volumes:
+      - ./Backend/chat:/var/www/chat
+      - ./Backend/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - postgresql
+    networks:
+      - chat
+  php:
+    image: php:7.4.9-fpm
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: chat-php
+    volumes:
+      - ./Backend/chat:/var/www/chat
+    #   # - ./php/php.ini:/usr/local/etc/php/php.ini
+    ports:
+      - "9000:9000"
+    networks:
+      - chat
+  postgresql:
+    image: mdillon/postgis:10
+    container_name: chat-postgresql
+    tty: true
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=1234
+    volumes:
+      - ./Backend/postgresql:/var/lib/postgresql/data
+    networks: 
+      - chat
+  redis:
+    image: redis:5.0.5
+    container_name: chat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./Backend/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - chat
+#   vue:
+#     build:
+#       context: .
+#       dockerfile: ./Frontend/chat/Dockerfile
+#     container_name: chat-vue
+#     ports:
+#         - "8081:80"
+#     networks:
+#         - chat
+  
